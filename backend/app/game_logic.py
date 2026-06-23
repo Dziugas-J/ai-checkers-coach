@@ -1,5 +1,3 @@
-# backend/app/game_logic.py
-
 from app.models import Board
 
 
@@ -7,21 +5,21 @@ BOARD_SIZE = 8
 
 
 def create_initial_board() -> Board:
-    board: Board = []
+    board = []
 
     for row in range(BOARD_SIZE):
-        board_row = []
+        current_row = []
 
         for col in range(BOARD_SIZE):
-            is_dark_square = (row + col) % 2 == 1
+            dark_square = (row + col) % 2 == 1
 
-            if is_dark_square and row < 3:
-                board_row.append("black")
-            elif is_dark_square and row > 4:
-                board_row.append("red")
+            if dark_square and row < 3:
+                current_row.append("black")
+            elif dark_square and row > 4:
+                current_row.append("red")
             else:
-                board_row.append("empty")
+                current_row.append("empty")
 
-        board.append(board_row)
+        board.append(current_row)
 
     return board
