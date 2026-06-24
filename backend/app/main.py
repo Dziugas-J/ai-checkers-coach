@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.game_logic import create_board, create_new_game
+from app.game_logic import CreateBoard, CreateNewGame
 from app.models import Board, GameState
 
 app = FastAPI(
@@ -21,9 +21,9 @@ app.add_middleware(
 @app.get("/checkers")
 def test_board() -> dict[str, Board]:
     return {
-        "board": create_board(),
+        "board": CreateBoard(),
     }
 
 @app.post("/game/new")
 def new_game() -> GameState:
-    return create_new_game()
+    return CreateNewGame()
