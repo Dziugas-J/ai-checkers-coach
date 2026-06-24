@@ -1,160 +1,41 @@
-import { useEffect, useState } from "react";
 import "./App.css";
+import { 
+    useEffect, 
+    useState } from "react";
+import { 
+    CreateNewGame } from "./Api";
 
-const API_URL = "http://127.0.0.1:8000";
+import {
+    GetCaptureMoves,
+    GetNextPlayer,
+    GetPiecePlayer,
+    GetPossibleMoves,
+    PlayerHasCapture,
+    PromotePieceIfNeeded,
+} from "./GameLogic";
 
 function App() {
     const [game, set_game] = useState(null);
     const [loading, set_loading] = useState(false);
-    const [error, set_error] = useState("");
     const [selected_piece, set_selected_piece] = useState(null);
     const [possible_moves, set_possible_moves] = useState([]);
     const [must_continue_capture, set_must_continue_capture] = useState(false);
 
     async function NewGame() {
-        try {
-            set_loading(true);
-            set_error("");
-            set_selected_piece(null);
-            set_possible_moves([]);
-            set_must_continue_capture(false);
+        set_loading(true);
+        set_selected_piece(null);
+        set_possible_moves([]);
+        set_must_continue_capture(false);
 
-            const response = await fetch(`${API_URL}/game/new`, {
-                method: "POST",
-            });
+        const data = await CreateNewGame();
+        set_game(data);
 
-            if (!response.ok) {
-                throw new Error("Failed to create new game");
-            }
-
-            const data = await response.json();
-            set_game(data);
-        }
-        catch (err) {
-            set_error(err.message);
-        }
-        finally {
-            set_loading(false);
-        }
+        set_loading(false);
     }
 
     useEffect(() => {
         NewGame();
     }, []);
-
-    function IsInsideBoard(row, col) {
-        return row >= 0 && row < 8 && col >= 0 && col < 8;
-    }
-
-    function GetOpponent(piece) {
-        if (piece === "white") {
-            return "black";
-        }
-
-        if (piece === "black") {
-            return "white";
-        }
-
-        return null;
-    }
-
-    function GetNextPlayer(player) {
-        return player === "white" ? "black" : "white";
-    }
-
-    function GetPossibleMoves(board, row, col) {
-        const piece = board[row][col];
-
-        if (piece === "empty") {
-            return [];
-        }
-
-        const opponent = GetOpponent(piece);
-        const direction = piece === "white" ? -1 : 1;
-
-        const normal_moves = [];
-        const capture_moves = [];
-
-        const move_candidates = [
-            { row: row + direction, col: col - 1 },
-            { row: row + direction, col: col + 1 },
-        ];
-
-        for (const move of move_candidates) {
-            if (
-                IsInsideBoard(move.row, move.col) &&
-                board[move.row][move.col] === "empty"
-            ) {
-                normal_moves.push({
-                    row: move.row,
-                    col: move.col,
-                    is_capture: false,
-                    captured_piece: null,
-                });
-            }
-        }
-
-        const capture_directions = [
-            { row_direction: -1, col_direction: -1 },
-            { row_direction: -1, col_direction: 1 },
-            { row_direction: 1, col_direction: -1 },
-            { row_direction: 1, col_direction: 1 },
-        ];
-
-        for (const capture_direction of capture_directions) {
-            const middle_row = row + capture_direction.row_direction;
-            const middle_col = col + capture_direction.col_direction;
-            const target_row = row + capture_direction.row_direction * 2;
-            const target_col = col + capture_direction.col_direction * 2;
-
-            if (!IsInsideBoard(target_row, target_col)) {
-                continue;
-            }
-
-            const middle_piece = board[middle_row][middle_col];
-            const destination_piece = board[target_row][target_col];
-
-            if (middle_piece === opponent && destination_piece === "empty") {
-                capture_moves.push({
-                    row: target_row,
-                    col: target_col,
-                    is_capture: true,
-                    captured_piece: {
-                        row: middle_row,
-                        col: middle_col,
-                    },
-                });
-            }
-        }
-
-        if (capture_moves.length > 0) {
-            return capture_moves;
-        }
-
-        return normal_moves;
-    }
-
-    function GetCaptureMoves(board, row, col) {
-        return GetPossibleMoves(board, row, col).filter((move) => move.is_capture);
-    }
-
-    function PlayerHasCapture(board, player) {
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                if (board[row][col] !== player) {
-                    continue;
-                }
-
-                const captures = GetCaptureMoves(board, row, col);
-
-                if (captures.length > 0) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     function IsSelected(row, col) {
         return (
@@ -174,6 +55,37 @@ function App() {
         return GetPossibleMove(row, col) !== undefined;
     }
 
+    function GetNewGameButtonText() {
+        if (loading) {
+            return "Loading...";
+        }
+
+        return "New Game";
+    }
+
+    function GetSquareClassName(row, col, possible_move) {
+        let square_class = "square";
+
+        const is_dark_square = (row + col) % 2 === 1;
+
+        if (is_dark_square) {
+            square_class += " dark";
+        }
+        else {
+            square_class += " light";
+        }
+
+        if (possible_move) {
+            square_class += " possible-move";
+        }
+
+        if (possible_move && possible_move.is_capture) {
+            square_class += " capture-move";
+        }
+
+        return square_class;
+    }
+
     function ApplyMove(target_row, target_col) {
         const move = GetPossibleMove(target_row, target_col);
 
@@ -188,7 +100,11 @@ function App() {
         const moving_piece = new_board[selected_row][selected_col];
 
         new_board[selected_row][selected_col] = "empty";
-        new_board[target_row][target_col] = moving_piece;
+
+        const promoted_piece = PromotePieceIfNeeded(moving_piece, target_row);
+        const was_promoted = promoted_piece !== moving_piece;
+
+        new_board[target_row][target_col] = promoted_piece;
 
         if (move.is_capture && move.captured_piece) {
             new_board[move.captured_piece.row][move.captured_piece.col] = "empty";
@@ -198,11 +114,17 @@ function App() {
             const next_capture_moves = GetCaptureMoves(new_board, target_row, target_col);
 
             if (next_capture_moves.length > 0) {
+                let message = "Piece captured. Continue capture.";
+
+                if (was_promoted) {
+                    message = "Piece promoted to king. Continue capture.";
+                }
+
                 set_game({
                     ...game,
                     board: new_board,
                     current_player: game.current_player,
-                    message: "Piece captured. Continue capture.",
+                    message: message,
                 });
 
                 set_selected_piece({
@@ -216,11 +138,21 @@ function App() {
             }
         }
 
+        let message = "Piece moved";
+
+        if (move.is_capture) {
+            message = "Piece captured";
+        }
+
+        if (was_promoted) {
+            message = "Piece promoted to king";
+        }
+
         set_game({
             ...game,
             board: new_board,
             current_player: GetNextPlayer(game.current_player),
-            message: move.is_capture ? "Piece captured" : "Piece moved",
+            message: message,
         });
 
         set_selected_piece(null);
@@ -250,7 +182,7 @@ function App() {
             return;
         }
 
-        if (piece !== game.current_player) {
+        if (GetPiecePlayer(piece) !== game.current_player) {
             set_selected_piece(null);
             set_possible_moves([]);
             return;
@@ -287,8 +219,61 @@ function App() {
             return null;
         }
 
+        let piece_class = `piece ${piece}`;
+
+        if (IsSelected(row, col)) {
+            piece_class += " selected";
+        }
+
         return (
-            <div className={`piece ${piece} ${IsSelected(row, col) ? "selected" : ""}`}></div>
+            <div className={piece_class}></div>
+        );
+    }
+
+    function RenderGame() {
+        if (!game) {
+            return null;
+        }
+
+        return (
+            <section className="game-info">
+                <p>
+                    <strong>Current player:</strong> {game.current_player}
+                </p>
+
+                <p>
+                    <strong>Message:</strong> {game.message}
+                </p>
+
+                <div className="board">
+                    {game.board.map((row, row_index) =>
+                        row.map((piece, col_index) => {
+                            const possible_move = GetPossibleMove(row_index, col_index);
+                            let square_class = GetSquareClassName(
+                                row_index,
+                                col_index,
+                                possible_move
+                            );
+
+                            if (possible_move) {
+                                if (possible_move.is_capture) {
+                                    square_class += " capture-move";
+                                }
+                            }
+
+                            return (
+                                <div
+                                    key={`${row_index}-${col_index}`}
+                                    className={square_class}
+                                    onClick={() => HandleSquareClick(row_index, col_index)}
+                                >
+                                    {RenderPiece(piece, row_index, col_index)}
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            </section>
         );
     }
 
@@ -297,43 +282,10 @@ function App() {
             <h1>AI Checkers Coach</h1>
 
             <button onClick={NewGame} disabled={loading}>
-                {loading ? "Loading..." : "New Game"}
+                {GetNewGameButtonText()}
             </button>
 
-            {error && <p className="error">{error}</p>}
-
-            {game && (
-                <section className="game-info">
-                    <p>
-                        <strong>Current player:</strong> {game.current_player}
-                    </p>
-
-                    <p>
-                        <strong>Message:</strong> {game.message}
-                    </p>
-
-                    <div className="board">
-                        {game.board.map((row, row_index) =>
-                            row.map((piece, col_index) => {
-                                const is_dark_square = (row_index + col_index) % 2 === 1;
-                                const possible_move = GetPossibleMove(row_index, col_index);
-
-                                return (
-                                    <div
-                                        key={`${row_index}-${col_index}`}
-                                        className={`square ${is_dark_square ? "dark" : "light"} ${
-                                            possible_move ? "possible-move" : ""
-                                        } ${possible_move?.is_capture ? "capture-move" : ""}`}
-                                        onClick={() => HandleSquareClick(row_index, col_index)}
-                                    >
-                                        {RenderPiece(piece, row_index, col_index)}
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </section>
-            )}
+            {RenderGame()}
         </main>
     );
 }

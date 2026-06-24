@@ -2,7 +2,7 @@ from typing import Literal, TypeAlias
 from pydantic import BaseModel
 
 
-Piece: TypeAlias = Literal["empty", "white", "black"]
+Piece: TypeAlias = Literal["empty", "white", "black", "white_king", "black_king"]
 Player: TypeAlias = Literal["white", "black"]
 Board: TypeAlias = list[list[Piece]]
 

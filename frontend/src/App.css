@@ -86,3 +86,30 @@ button {
     border: 3px solid #cdcdcd;
     box-shadow: 0 0 20px #cccccc;
 }
+
+.piece.white_king,
+.piece.black_king {
+    position: relative;
+    border-radius: 50%;
+}
+
+.piece.white_king::after,
+.piece.black_king::after {
+    content: "🜲";
+    position: absolute;
+    font-size: 40px;
+    font-weight: bold;
+    line-height: 1;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.piece.black_king::after {
+    color: #2a2a2a;
+}
+
+.piece.white_king::after {
+    color: #f0f0f0;
+}

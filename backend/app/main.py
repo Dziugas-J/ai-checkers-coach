@@ -19,11 +19,12 @@ app.add_middleware(
 )
 
 @app.get("/checkers")
-def test_board() -> dict[str, Board]:
+def TestBoard() -> dict[str, Board]:
     return {
         "board": CreateBoard(),
     }
 
+
 @app.post("/game/new")
-def new_game() -> GameState:
+def NewGame() -> GameState:
     return CreateNewGame()
