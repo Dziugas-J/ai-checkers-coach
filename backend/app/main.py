@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.game_logic import create_initial_board
-from app.models import Board
+from app.game_logic import create_board, create_new_game
+from app.models import Board, GameState
 
 app = FastAPI(
     title="AI Checkers Coach",
@@ -21,5 +21,9 @@ app.add_middleware(
 @app.get("/checkers")
 def test_board() -> dict[str, Board]:
     return {
-        "board": create_initial_board(),
+        "board": create_board(),
     }
+
+@app.post("/game/new")
+def new_game() -> GameState:
+    return create_new_game()
