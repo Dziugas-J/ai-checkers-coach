@@ -1,4 +1,4 @@
-from app.models import Board, GameState
+from app.models import Board
 
 
 BOARD_SIZE = 8
@@ -25,10 +25,9 @@ def CreateBoard() -> Board:
     return board
 
 
-def CreateNewGame() -> GameState:
-    return GameState(
-        board=CreateBoard(),
-        current_player="white",
-        winner=None,
-        message="New game created",
-    )
+def CopyBoard(board: Board) -> Board:
+    return [row.copy() for row in board]
+
+
+def IsInsideBoard(row: int, col: int) -> bool:
+    return row >= 0 and row < BOARD_SIZE and col >= 0 and col < BOARD_SIZE

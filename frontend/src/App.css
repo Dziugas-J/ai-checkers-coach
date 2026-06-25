@@ -15,11 +15,6 @@ button {
     margin-top: 24px;
 }
 
-.error {
-    color: red;
-    font-weight: bold;
-}
-
 .board {
     display: grid;
     grid-template-columns: repeat(8, 64px);
@@ -72,14 +67,15 @@ button {
     transition: box-shadow 0.15s ease, border 0.15s ease, transform 0.15s ease;
 }
 
-.piece.white {
+.piece.white,
+.piece.white_king {
     background-color: #dfdede;
 }
 
-.piece.black {
+.piece.black,
+.piece.black_king {
     background-color: #2a2a2a;
-    cursor: default;
-
+    cursor: pointer;
 }
 
 .piece.selected {
@@ -95,21 +91,20 @@ button {
 
 .piece.white_king::after,
 .piece.black_king::after {
-    content: "🜲";
+    content: "";
     position: absolute;
-    font-size: 40px;
-    font-weight: bold;
-    line-height: 1;
-
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
-.piece.black_king::after {
-    color: #2a2a2a;
+.piece.white_king::after {
+    background-color: #2a2a2a;
 }
 
-.piece.white_king::after {
-    color: #f0f0f0;
+.piece.black_king::after {
+    background-color: #f0f0f0;
 }
