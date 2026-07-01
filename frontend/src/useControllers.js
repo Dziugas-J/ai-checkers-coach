@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import {
     fetchNewRound,
-    fetchRoundLegalMoves,
-    sendRoundMove,
-    sendRoundBotMove,
-    fetchRoundHint,
-    sendDrawAccept,
-    sendDrawDecline,
-    sendDrawOffer,
+    fetchPlayerLegalMoves,
+    sendPlayerMove,
+    sendBotMove,
+    fetchPlayerHint,
+    sendAcceptBotDraw,
+    sendDeclineBotDraw,
+    sendPlayerDrawOffer,
     sendFinishBotSurrender,
 } from "./Api";
 import {
@@ -35,7 +35,7 @@ function useControllers() {
     const drawOfferMessage = round ? round.draw_offer_message : null;
     const surrenderBy = round ? round.surrender_by : null;
     const surrenderMessage = round ? round.surrender_message : null;
-    
+
     async function loadPreviewGame() {
         const data = await fetchNewRound("easy");
         setRound(data);
@@ -61,12 +61,19 @@ function useControllers() {
         if (!round || hintLoading) {
             return;
         }
+
         if (drawOfferBy === "black") {
             return;
         }
+
         if (surrenderBy !== null) {
             return;
         }
+
+        if (game && game.current_player !== "white") {
+            return;
+        }
+
         if (hint !== "") {
             return;
         }
@@ -75,14 +82,15 @@ function useControllers() {
         setHintMoveVisible(false);
 
         try {
-            const data = await fetchRoundHint(round);
+            const data = await fetchPlayerHint(round);
             setHint(data.hint);
+
             if (
                 data.start_row !== null &&
                 data.start_col !== null &&
                 data.target_row !== null &&
                 data.target_col !== null
-            ){
+            ) {
                 setHintMove({
                     startRow: data.start_row,
                     startCol: data.start_col,
@@ -119,7 +127,7 @@ function useControllers() {
             return;
         }
 
-        const moves = await fetchRoundLegalMoves(round, row, col);
+        const moves = await fetchPlayerLegalMoves(round, row, col);
 
         if (moves.length === 0) {
             clearSelectedPiece();
@@ -147,7 +155,7 @@ function useControllers() {
         clearSelectedPiece();
         clearHint();
 
-        const updatedRound = await sendRoundMove(
+        const updatedRound = await sendPlayerMove(
             round,
             moveStartRow,
             moveStartCol,
@@ -166,7 +174,7 @@ function useControllers() {
                 col: updatedRound.game.forced_piece.col,
             });
 
-            const nextMoves = await fetchRoundLegalMoves(
+            const nextMoves = await fetchPlayerLegalMoves(
                 updatedRound,
                 updatedRound.game.forced_piece.row,
                 updatedRound.game.forced_piece.col
@@ -185,8 +193,7 @@ function useControllers() {
         ) {
             await waitHalfSecond();
 
-            currentRound = await sendRoundBotMove(currentRound);
-
+            currentRound = await sendBotMove(currentRound);
             setRound(currentRound);
 
             if (currentRound.surrender_by !== null) {
@@ -264,7 +271,7 @@ function useControllers() {
         clearSelectedPiece();
         clearHint();
 
-        const updatedRound = await sendDrawAccept(round);
+        const updatedRound = await sendAcceptBotDraw(round);
         setRound(updatedRound);
     }
 
@@ -275,13 +282,18 @@ function useControllers() {
 
         clearSelectedPiece();
 
-        const updatedRound = await sendDrawDecline(round);
+        const updatedRound = await sendDeclineBotDraw(round);
         setRound(updatedRound);
     }
 
     useEffect(() => {
-        if (!round) return;
-        if (surrenderBy !== "black") return;
+        if (!round) {
+            return;
+        }
+
+        if (surrenderBy !== "black") {
+            return;
+        }
 
         const surrenderedRound = round;
 
@@ -308,8 +320,7 @@ function useControllers() {
         clearSelectedPiece();
         clearHint();
 
-        const updatedRound = await sendDrawOffer(round);
-
+        const updatedRound = await sendPlayerDrawOffer(round);
         setRound(updatedRound);
     }
 

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -27,9 +28,14 @@ from app.game_logic.models import (
 
 app = FastAPI(title="Checkers", version="0.1.0")
 
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        frontend_url,
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )

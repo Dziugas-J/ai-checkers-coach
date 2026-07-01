@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 async function postJson(path, body) {
     const response = await fetch(`${API_URL}${path}`, {
@@ -40,4 +40,20 @@ export function fetchPlayerHint(round) {
 
 export function sendBotMove(round) {
     return postJson("/round/bot-move", { round });
+}
+
+export function sendAcceptBotDraw(round) {
+    return postJson("/round/draw/accept", { round });
+}
+
+export function sendDeclineBotDraw(round) {
+    return postJson("/round/draw/decline", { round });
+}
+
+export function sendPlayerDrawOffer(round) {
+    return postJson("/round/draw/offer", { round });
+}
+
+export function sendFinishBotSurrender(round) {
+    return postJson("/round/surrender/finish", { round });
 }
