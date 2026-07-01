@@ -1,26 +1,32 @@
-from app.board import BOARD_SIZE, copy_board, is_piece_in_board
-from app.game import is_forced_capture_piece
-from app.models import Board, GameState, LegalMove, Player, Position
-from app.pieces import (
+from app.game_logic.board import BOARD_SIZE, copy_board, is_position_in_board
+from app.game_logic.game import can_move_piece
+from app.game_logic.models import Board, GameState, LegalMove, Player, Position
+from app.game_logic.pieces import (
     get_diagonal_directions,
     get_next_player,
-    get_move_directions,
+    get_legal_move_directions,
     get_opponent_player,
     get_piece_owner,
     is_piece_king,
     promote_piece,
 )
+from app.game_logic.winner import add_winner_if_game_finished
+
 
 def get_possible_moves(board: Board, row: int, col: int) -> list[LegalMove]:
+    if not is_position_in_board(row, col):
+        return []
+
     piece = board[row][col]
-    if not is_piece_in_board(row, col):
+
+    if piece == "empty":
         return []
-    elif piece == "empty":
-        return []
-    elif is_piece_king(piece):
+
+    if is_piece_king(piece):
         return get_king_moves(board, row, col)
-    else:
-        return get_regular_piece_moves(board, row, col)
+
+    return get_regular_piece_moves(board, row, col)
+
 
 def get_regular_piece_moves(board: Board, row: int, col: int) -> list[LegalMove]:
     piece = board[row][col]
@@ -29,13 +35,13 @@ def get_regular_piece_moves(board: Board, row: int, col: int) -> list[LegalMove]
     normal_moves = []
     capture_moves = []
 
-    move_directions = get_move_directions(piece)
+    move_directions = get_legal_move_directions(piece)
 
     for row_direction, col_direction in move_directions:
         target_row = row + row_direction
         target_col = col + col_direction
 
-        if is_piece_in_board(target_row, target_col):
+        if is_position_in_board(target_row, target_col):
             if board[target_row][target_col] == "empty":
                 normal_moves.append(
                     LegalMove(
@@ -54,7 +60,7 @@ def get_regular_piece_moves(board: Board, row: int, col: int) -> list[LegalMove]
         target_row = row + row_direction * 2
         target_col = col + col_direction * 2
 
-        if not is_piece_in_board(target_row, target_col):
+        if not is_position_in_board(target_row, target_col):
             continue
 
         middle_piece = board[middle_row][middle_col]
@@ -79,6 +85,7 @@ def get_regular_piece_moves(board: Board, row: int, col: int) -> list[LegalMove]
 
     return normal_moves
 
+
 def get_king_moves(board: Board, row: int, col: int) -> list[LegalMove]:
     piece = board[row][col]
     piece_player = get_piece_owner(piece)
@@ -94,7 +101,7 @@ def get_king_moves(board: Board, row: int, col: int) -> list[LegalMove]:
         current_col = col + col_direction
         found_enemy = None
 
-        while is_piece_in_board(current_row, current_col):
+        while is_position_in_board(current_row, current_col):
             current_piece = board[current_row][current_col]
             current_piece_player = get_piece_owner(current_piece)
 
@@ -137,12 +144,14 @@ def get_king_moves(board: Board, row: int, col: int) -> list[LegalMove]:
                 current_row = current_row + row_direction
                 current_col = current_col + col_direction
                 continue
+
             break
 
     if len(capture_moves) > 0:
         return capture_moves
 
     return normal_moves
+
 
 def get_capture_moves(board: Board, row: int, col: int) -> list[LegalMove]:
     possible_moves = get_possible_moves(board, row, col)
@@ -153,6 +162,7 @@ def get_capture_moves(board: Board, row: int, col: int) -> list[LegalMove]:
             capture_moves.append(move)
 
     return capture_moves
+
 
 def can_player_capture(board: Board, player: Player) -> bool:
     for row in range(BOARD_SIZE):
@@ -169,7 +179,8 @@ def can_player_capture(board: Board, player: Player) -> bool:
 
     return False
 
-def find_moves(
+
+def find_legal_moves(
     board: Board,
     player: Player,
     start_row: int,
@@ -177,10 +188,10 @@ def find_moves(
     target_row: int,
     target_col: int,
 ) -> LegalMove | None:
-    if not is_piece_in_board(start_row, start_col):
+    if not is_position_in_board(start_row, start_col):
         return None
 
-    if not is_piece_in_board(target_row, target_col):
+    if not is_position_in_board(target_row, target_col):
         return None
 
     piece = board[start_row][start_col]
@@ -200,12 +211,13 @@ def find_moves(
 
     return None
 
-def get_moves(
+
+def get_legal_moves(
     game: GameState,
     row: int,
     col: int,
 ) -> list[LegalMove]:
-    if not is_piece_in_board(row, col):
+    if not is_position_in_board(row, col):
         return []
 
     piece = game.board[row][col]
@@ -234,16 +246,6 @@ def get_moves(
 
     return possible_moves
 
-def count_player_pieces(board: Board, player: Player) -> int:
-    count = 0
-
-    for row in board:
-        for piece in row:
-            if get_piece_owner(piece) == player:
-                count += 1
-
-    return count
-
 
 def can_player_move(game: GameState, player: Player) -> bool:
     test_game = GameState(
@@ -261,43 +263,13 @@ def can_player_move(game: GameState, player: Player) -> bool:
             if get_piece_owner(piece) != player:
                 continue
 
-            legal_moves = get_moves(test_game, row, col)
+            legal_moves = get_legal_moves(test_game, row, col)
 
             if len(legal_moves) > 0:
                 return True
 
     return False
 
-
-def get_winner(game: GameState) -> Player | None:
-    white_pieces = count_player_pieces(game.board, "white")
-    black_pieces = count_player_pieces(game.board, "black")
-
-    if white_pieces == 0:
-        return "black"
-
-    if black_pieces == 0:
-        return "white"
-
-    if not can_player_move(game, game.current_player):
-        return get_next_player(game.current_player)
-
-    return None
-
-
-def add_winner_if_game_finished(game: GameState) -> GameState:
-    winner = get_winner(game)
-
-    if winner is None:
-        return game
-
-    return GameState(
-        board=game.board,
-        current_player=game.current_player,
-        winner=winner,
-        must_continue_capture=False,
-        forced_piece=None,
-    )
 
 def apply_move(
     game: GameState,
@@ -309,10 +281,10 @@ def apply_move(
     if game.winner is not None:
         return game
 
-    if not is_forced_capture_piece(game, start_row, start_col):
+    if not can_move_piece(game, start_row, start_col):
         return game
 
-    legal_move = find_moves(
+    legal_move = find_legal_moves(
         game.board,
         game.current_player,
         start_row,
@@ -363,5 +335,12 @@ def apply_move(
         forced_piece=None,
     )
 
-    return add_winner_if_game_finished(updated_game)
+    current_player_can_move = can_player_move(
+        updated_game,
+        updated_game.current_player,
+    )
 
+    return add_winner_if_game_finished(
+        updated_game,
+        current_player_can_move,
+    )

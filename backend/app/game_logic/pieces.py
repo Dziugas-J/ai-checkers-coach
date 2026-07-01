@@ -1,4 +1,4 @@
-from app.models import Piece, Player
+from app.game_logic.models import Piece, Player
 
 
 def get_piece_owner(piece: Piece) -> Player | None:
@@ -39,7 +39,7 @@ def promote_piece(piece: Piece, row: int) -> Piece:
 def get_diagonal_directions() -> list[tuple[int, int]]:
     return [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
-def get_move_directions(piece: Piece) -> list[tuple[int, int]]:
+def get_legal_move_directions(piece: Piece) -> list[tuple[int, int]]:
     if is_piece_king(piece):
         return get_diagonal_directions()
     if piece == "white":

@@ -1,19 +1,17 @@
 import random
 from typing import TypeAlias
 
-from app.models import Difficulty, GameState, LegalMove
-from app.moves import apply_move, get_moves
-
+from app.game_logic.models import Difficulty, GameState, LegalMove
+from app.game_logic.moves import apply_move, get_legal_moves
 
 MoveOption: TypeAlias = tuple[int, int, int, int, LegalMove]
-
 
 def get_all_current_player_moves(game: GameState) -> list[MoveOption]:
     all_moves = []
 
     for row in range(len(game.board)):
         for col in range(len(game.board[row])):
-            legal_moves = get_moves(game, row, col)
+            legal_moves = get_legal_moves(game, row, col)
 
             for move in legal_moves:
                 all_moves.append(
@@ -44,7 +42,7 @@ def apply_move_option(game: GameState, move_option: MoveOption) -> GameState:
     )
 
 
-def score_move(game: GameState, move_option: MoveOption) -> int:
+def score_bot_move(game: GameState, move_option: MoveOption) -> int:
     start_row = move_option[0]
     target_row = move_option[2]
     legal_move = move_option[4]
@@ -67,7 +65,7 @@ def score_move(game: GameState, move_option: MoveOption) -> int:
     return score
 
 
-def evaluate_board(game: GameState) -> int:
+def evaluate_board_for_bot(game: GameState) -> int:
     score = 0
 
     for row in game.board:
@@ -93,7 +91,7 @@ def choose_medium_move(game: GameState, move_options: list[MoveOption]) -> MoveO
     best_moves = []
 
     for move_option in move_options:
-        move_score = score_move(game, move_option)
+        move_score = score_bot_move(game, move_option)
 
         if best_score is None or move_score > best_score:
             best_score = move_score
@@ -110,7 +108,7 @@ def choose_hard_move(game: GameState, move_options: list[MoveOption]) -> MoveOpt
 
     for move_option in move_options:
         game_after_black_move = apply_move_option(game, move_option)
-        move_score = evaluate_board(game_after_black_move)
+        move_score = evaluate_board_for_bot(game_after_black_move)
 
         if game_after_black_move.current_player == "white":
             white_moves = get_all_current_player_moves(game_after_black_move)
@@ -126,7 +124,7 @@ def choose_hard_move(game: GameState, move_options: list[MoveOption]) -> MoveOpt
                         white_move,
                     )
 
-                    reply_score = evaluate_board(game_after_white_move)
+                    reply_score = evaluate_board_for_bot(game_after_white_move)
 
                     if (
                         worst_score_after_white_reply is None
@@ -163,29 +161,21 @@ def apply_bot_move(game: GameState, difficulty: Difficulty) -> GameState:
     if game.current_player != "black":
         return game
 
-    current_game = game
+    move_options = get_all_current_player_moves(game)
 
-    while current_game.current_player == "black" and current_game.winner is None:
-        move_options = get_all_current_player_moves(current_game)
-
-        if len(move_options) == 0:
-            return GameState(
-                board=current_game.board,
-                current_player=current_game.current_player,
-                winner="white",
-                must_continue_capture=False,
-                forced_piece=None,
-            )
-
-        selected_move = choose_bot_move(
-            current_game,
-            move_options,
-            difficulty,
+    if len(move_options) == 0:
+        return GameState(
+            board=game.board,
+            current_player=game.current_player,
+            winner="white",
+            must_continue_capture=False,
+            forced_piece=None,
         )
 
-        current_game = apply_move_option(current_game, selected_move)
+    selected_move = choose_bot_move(
+        game,
+        move_options,
+        difficulty,
+    )
 
-        if not current_game.must_continue_capture:
-            break
-
-    return current_game
+    return apply_move_option(game, selected_move)

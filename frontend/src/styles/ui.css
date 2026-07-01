@@ -171,20 +171,6 @@
     color: #7b5b4a;
 }
 
-.coach-question {
-    width: 100%;
-    padding: 14px 16px;
-    border: none;
-    border-radius: 18px 18px 0 18px;
-
-    background-color: #c84628;
-    color: white;
-
-    font-size: 16px;
-    text-align: left;
-    cursor: pointer;
-}
-
 .hint-box {
     margin-top: 14px;
     font-size: 16px;
@@ -194,4 +180,96 @@
 
 .hint-box p {
     margin: 0;
+}
+
+.draw-panel {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px 16px;
+    border: 1px solid #eadfd4;
+    border-radius: 12px;
+
+    background-color: #fff8ef;
+    color: #2a1a12;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.draw-panel p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.draw-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.draw-actions button {
+    min-width: 110px;
+    height: 34px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+    color: #2a1a12;
+
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.draw-actions button:hover {
+    background-color: #c84628;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.main-action-button:disabled,
+.secondary-action-button:disabled,
+.draw-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+.main-action-button:disabled:hover,
+.secondary-action-button:disabled:hover,
+.draw-actions button:disabled:hover {
+    background-color: #fff8ef;
+    color: #2a1a12;
+    transform: none;
+}
+
+.surrender-panel {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px 16px;
+    border: 1px solid #eadfd4;
+    border-radius: 12px;
+
+    background-color: #fff8ef;
+    color: #2a1a12;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.surrender-panel p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.surrender-panel span {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    color: #7b5b4a;
 }

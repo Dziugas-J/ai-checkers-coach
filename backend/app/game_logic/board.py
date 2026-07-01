@@ -1,4 +1,4 @@
-from app.models import Board
+from app.game_logic.models import Board
 
 
 BOARD_SIZE = 8
@@ -28,5 +28,5 @@ def copy_board(board: Board) -> Board:
     return [row.copy() for row in board]
 
 
-def is_piece_in_board(row: int, col: int) -> bool:
+def is_position_in_board(row: int, col: int) -> bool:
     return row >= 0 and row < BOARD_SIZE and col >= 0 and col < BOARD_SIZE

@@ -1,26 +1,31 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.board import create_board
-from app.game import create_new_game
-from app.models import Board, BotMoveRequest, GameState, LegalMove, LegalMovesRequest, MoveRequest
-from app.moves import apply_move, get_moves
-from app.bot import apply_bot_move
-from app.match import (
-    apply_player_move_to_match,
-    create_new_match,
-    get_match_hint,
-    get_match_legal_moves,
+
+from app.game_logic.round import (
+    accept_bot_draw,
+    apply_bot_move,
+    apply_player_move_to_round,
+    create_new_round,
+    decline_bot_draw,
+    finish_bot_surrender,
+    get_player_hint,
+    get_player_legal_moves,
+    player_offer_draw_to_bot,
 )
-from app.models import (
-    HintRequest,
+from app.game_logic.models import (
+    PlayerHintRequest,
     HintResponse,
-    MatchLegalMovesRequest,
-    MatchMoveRequest,
-    MatchState,
-    NewMatchRequest,
+    LegalMove,
+    BotMoveRequest,
+    PlayerDrawRequest,
+    PlayerLegalMovesRequest,
+    PlayerMoveRequest,
+    RoundState,
+    FinishBotSurrenderRequest,
+    NewRoundRequest,
 )
 
-app = FastAPI(title="AI Checkers Coach", version="0.1.0")
+app = FastAPI(title="Checkers", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,64 +34,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/checkers")
-def test_board() -> dict[str, Board]:
-    return {"board": create_board()}
+@app.post("/round/new")
+def new_round(request: NewRoundRequest) -> RoundState:
+    return create_new_round(request.difficulty)
 
-@app.post("/game/new")
-def new_game() -> GameState:
-    return create_new_game()
-
-@app.post("/game/move")
-def make_move(move_request: MoveRequest) -> GameState:
-    return apply_move(
-        move_request.game,
-        move_request.start_row,
-        move_request.start_col,
-        move_request.target_row,
-        move_request.target_col,
-    )
-
-@app.post("/game/legal-moves")
-def get_legal_moves(request: LegalMovesRequest) -> list[LegalMove]:
-    return get_moves(
-        request.game,
+@app.post("/round/legal-moves")
+def player_legal_moves(request: PlayerLegalMovesRequest) -> list[LegalMove]:
+    return get_player_legal_moves(
+        request.round,
         request.row,
         request.col,
     )
 
-@app.post("/game/bot-move")
-def make_bot_move(request: BotMoveRequest) -> GameState:
-    return apply_bot_move(
-        request.game,
-        request.difficulty,
-    )
-
-@app.post("/match/new")
-def new_match(request: NewMatchRequest) -> MatchState:
-    return create_new_match(request.difficulty)
-
-
-@app.post("/match/legal-moves")
-def match_legal_moves(request: MatchLegalMovesRequest) -> list[LegalMove]:
-    return get_match_legal_moves(
-        request.match,
-        request.row,
-        request.col,
-    )
-
-
-@app.post("/match/move")
-def match_move(request: MatchMoveRequest) -> MatchState:
-    return apply_player_move_to_match(
-        request.match,
+@app.post("/round/move")
+def player_move(request: PlayerMoveRequest) -> RoundState:
+    return apply_player_move_to_round(
+        request.round,
         request.start_row,
         request.start_col,
         request.target_row,
         request.target_col,
     )
 
+@app.post("/round/hint")
+def player_hint(request: PlayerHintRequest) -> HintResponse:
+    return get_player_hint(request.round)
 
-@app.post("/match/hint")
-def match_hint(request: HintRequest) -> HintResponse:
-    return get_match_hint(request.match)
+@app.post("/round/bot-move")
+def bot_move(request: BotMoveRequest) -> RoundState:
+    return apply_bot_move(request.round)
+
+@app.post("/round/draw/accept")
+def accept_round_draw(request: PlayerDrawRequest) -> RoundState:
+    return accept_bot_draw(request.round)
+
+@app.post("/round/draw/decline")
+def decline_round_draw(request: PlayerDrawRequest) -> RoundState:
+    return decline_bot_draw(request.round)
+
+@app.post("/round/draw/offer")
+def player_draw_offer(request: PlayerDrawRequest) -> RoundState:
+    return player_offer_draw_to_bot(request.round)
+
+@app.post("/round/surrender/finish")
+def finish_round_surrender(request: FinishBotSurrenderRequest) -> RoundState:
+    return finish_bot_surrender(request.round)
