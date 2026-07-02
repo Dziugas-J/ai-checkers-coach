@@ -45,15 +45,20 @@ https://ai-checkers-bot.onrender.com
 - Docker setup
 - Render deployment
 
-##Screenshots
-###Game board
-![Game board](./screenshots/main.png)
+## Screenshots
 
-###Choose bot's difficulty
-![Game board](./screenshots/difficulty.png)
+### Game Board
 
-###Get suggestions from AI hint system
-![Game board](./screenshots/hint.png)
+![Game board](./screenshots/game-board.png)
 
-###Bot asks for a draw
-![Game board](./screenshots/main.png)
+### Choose Bot Difficulty
+
+![Choose bot difficulty](./screenshots/choose-difficulty.png)
+
+### AI Hint
+
+![AI hint](./screenshots/ai-hint.png)
+
+### Draw and Surrender Flow
+
+![Draw or surrender flow](./screenshots/draw-surrender.png)
