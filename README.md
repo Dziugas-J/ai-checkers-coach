@@ -44,3 +44,16 @@ https://ai-checkers-bot.onrender.com
 - Responsive game interface
 - Docker setup
 - Render deployment
+
+##Screenshots
+###Game board
+![Game board](./screenshots/main.png)
+
+###Choose bot's difficulty
+![Game board](./screenshots/difficulty.png)
+
+###Get suggestions from AI hint system
+![Game board](./screenshots/hint.png)
+
+###Bot asks for a draw
+![Game board](./screenshots/main.png)
