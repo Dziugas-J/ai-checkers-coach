@@ -160,32 +160,27 @@ def get_ai_hint(game: GameState) -> HintResponse:
             ),
         )
 
-    except errors.ClientError:
-        return get_hint_response_without_move(
-            "AI coach request limit reached. Try again in a moment."
-        )
-
     except Exception:
         return get_hint_response_without_move(
             "AI coach is unavailable right now. Try again later."
         )
 
-    if response.text is None:
-        return get_hint_response_without_move("Gemini returned no text.")
-
     try:
+        if response.text is None:
+            raise ValueError("Empty Gemini response")
+
         data = json.loads(response.text)
 
         selected_move = data["move"].strip()
         reason = data["reason"].strip()
 
+        if reason == "":
+            raise ValueError("Empty hint reason")
+
     except Exception:
         return get_hint_response_without_move(
-            "AI coach returned an invalid response. Try again."
+            "AI coach is unavailable right now. Try again later."
         )
-
-    if reason == "":
-        return get_hint_response_without_move("Gemini returned an empty hint.")
 
     matching_legal_move = find_matching_legal_move(
         selected_move,
@@ -194,12 +189,7 @@ def get_ai_hint(game: GameState) -> HintResponse:
 
     if matching_legal_move is None:
         return get_hint_response_without_move(
-            "AI coach chose a move that was not legal. Try again."
-        )
-
-    if not king_can_be_discussed and "king" in reason.lower():
-        return get_hint_response_without_move(
-            "No kings are on the board. Look for captures or improve your piece position."
+            "AI coach is unavailable right now. Try again later."
         )
 
     return get_hint_response_from_move(

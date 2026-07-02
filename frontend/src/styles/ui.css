@@ -5,7 +5,7 @@
 
 .difficulty-select {
     padding: 6px 10px;
-    border: none;
+    border: 1px solid #4a2417;
     border-radius: 8px;
 
     background-color: transparent;
@@ -28,7 +28,7 @@
 }
 
 .difficulty-select:hover {
-    background-color: #c84628;
+    background-color: #4a2417;
     color: white;
     transform: translateY(-1px);
 }
@@ -45,7 +45,7 @@
 
     width: 130px;
     padding: 4px;
-    border: 1px solid #eadfd4;
+    border: 1px solid #4a2417;
     border-radius: 10px;
 
     background-color: #fff8ef;
@@ -59,7 +59,7 @@
     padding: 10px 12px;
     border: none;
     border-radius: 7px;
-
+    
     background-color: transparent;
     color: #2a1a12;
 
@@ -73,7 +73,7 @@
 }
 
 .difficulty-option:hover {
-    background-color: #c84628;
+    background-color: #4a2417;
     color: white;
 }
 
@@ -105,7 +105,7 @@
     width: 100px;
     height: 34px;
     padding: 0;
-    border: none;
+    border: 1px solid #4a2417;
     border-radius: 8px;
 
     font-size: 16px;
@@ -129,7 +129,7 @@
 .secondary-action-button {
     background-color: #fff8ef;
     color: #2a1a12;
-    border: 1px solid #eadfd4;
+    border: 1px solid #4a2417;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 
     transition:
@@ -140,7 +140,7 @@
 
 .main-action-button:hover,
 .secondary-action-button:hover {
-    background-color: #c84628;
+    background-color: #4a2417;
     color: white;
     transform: translateY(-1px);
 }
@@ -211,7 +211,7 @@
     min-width: 110px;
     height: 34px;
     padding: 0 12px;
-    border: none;
+    border: 1px solid #4a2417;
     border-radius: 8px;
 
     background-color: #ffffff;
@@ -228,7 +228,7 @@
 }
 
 .draw-actions button:hover {
-    background-color: #c84628;
+    background-color: #4a2417;
     color: white;
     transform: translateY(-1px);
 }

@@ -10,7 +10,7 @@
     grid-template-rows: repeat(8, 64px);
 
     width: fit-content;
-    border: 10px solid #4a2417;
+    border: 8px solid #4a2417;
     border-radius: 16px;
     overflow: hidden;
 

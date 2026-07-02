@@ -8,6 +8,8 @@ services:
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       FRONTEND_URL: http://localhost:5173
+    volumes:
+      - ./backend/app:/app/app
 
   frontend:
     build:
@@ -17,5 +19,10 @@ services:
       - "5173:5173"
     environment:
       VITE_API_URL: http://localhost:8000
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
